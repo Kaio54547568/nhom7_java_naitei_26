@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking status updated</title>
+</head>
+<body>
+<h1>Booking status updated</h1>
+<p>Hello <span th:text="${booking.userName}">Customer</span>,</p>
+<p>
+    Booking <strong th:text="${'#' + booking.bookingId}">#0</strong>
+    for <strong th:text="${booking.spaceName}">Workspace</strong> has changed status.
+</p>
+<ul>
+    <li>Previous status: <span th:text="${booking.previousStatus}">PENDING</span></li>
+    <li>New status: <strong th:text="${booking.newStatus}">APPROVED</strong></li>
+    <li>Start time: <span th:text="${booking.startTime}">2026-08-22T09:00</span></li>
+    <li>End time: <span th:text="${booking.endTime}">2026-08-22T11:00</span></li>
+    <li>Total price: <span th:text="${booking.totalPrice}">0.00</span></li>
+</ul>
+<p>Please contact support if you did not expect this change.</p>
+</body>
+</html>

@@ -42,6 +42,9 @@ class OtpServiceImplTest {
     private EmailService emailService;
 
     @Mock
+    private EmailTemplateService emailTemplateService;
+
+    @Mock
     private OtpCodeGenerator otpCodeGenerator;
 
     @Mock
@@ -58,6 +61,7 @@ class OtpServiceImplTest {
                 userRepository,
                 otpTokenRepository,
                 emailService,
+                emailTemplateService,
                 otpCodeGenerator,
                 passwordEncoder,
                 properties,
@@ -75,6 +79,8 @@ class OtpServiceImplTest {
         given(userRepository.findByEmail(user.getEmail())).willReturn(Optional.of(user));
         given(otpCodeGenerator.generateCode()).willReturn("123456");
         given(passwordEncoder.encode("123456")).willReturn("hashed-code");
+        given(emailTemplateService.renderAccountConfirmation("123456"))
+                .willReturn("<p>Confirmation template: 123456</p>");
 
         otpService.sendConfirmationOtp(user.getEmail());
 
@@ -90,7 +96,7 @@ class OtpServiceImplTest {
         verify(emailService).sendHtmlEmail(
                 user.getEmail(),
                 "Confirm your account",
-                "<p>Your confirmation code is <strong>123456</strong>.</p>");
+                "<p>Confirmation template: 123456</p>");
     }
 
     @Test
@@ -122,5 +128,60 @@ class OtpServiceImplTest {
         otpService.sendConfirmationOtp(user.getEmail());
 
         verifyNoInteractions(otpTokenRepository, emailService);
+    }
+
+    @Test
+    void sendPasswordResetOtpShouldReplaceOldTokenAndSendEmailForActiveUser() {
+        User user = User.builder()
+                .id(2L)
+                .name("Active User")
+                .email("active@coworking.test")
+                .status("ACTIVE")
+                .build();
+        given(userRepository.findByEmail(user.getEmail())).willReturn(Optional.of(user));
+        given(otpCodeGenerator.generateCode()).willReturn("654321");
+        given(passwordEncoder.encode("654321")).willReturn("hashed-reset-code");
+        given(emailTemplateService.renderPasswordReset("654321"))
+                .willReturn("<p>Reset template: 654321</p>");
+
+        otpService.sendPasswordResetOtp(user.getEmail());
+
+        verify(otpTokenRepository).deleteByUserAndPurpose(user, OtpPurpose.PASSWORD_RESET);
+        ArgumentCaptor<OtpToken> tokenCaptor = ArgumentCaptor.forClass(OtpToken.class);
+        verify(otpTokenRepository).saveAndFlush(tokenCaptor.capture());
+        assertThat(tokenCaptor.getValue().getPurpose()).isEqualTo(OtpPurpose.PASSWORD_RESET);
+        assertThat(tokenCaptor.getValue().getCodeHash()).isEqualTo("hashed-reset-code");
+        verify(emailService).sendHtmlEmail(
+                user.getEmail(),
+                "Reset your password",
+                "<p>Reset template: 654321</p>");
+    }
+
+    @Test
+    void sendPasswordResetOtpShouldNormalizeEmailBeforeLookup() {
+        User user = User.builder()
+                .id(3L)
+                .email("active@coworking.test")
+                .status("ACTIVE")
+                .build();
+        given(userRepository.findByEmail(user.getEmail())).willReturn(Optional.of(user));
+        given(otpCodeGenerator.generateCode()).willReturn("111222");
+        given(passwordEncoder.encode("111222")).willReturn("hashed-code");
+        given(emailTemplateService.renderPasswordReset("111222")).willReturn("reset-body");
+
+        otpService.sendPasswordResetOtp(" Active@Coworking.Test ");
+
+        verify(userRepository).findByEmail("active@coworking.test");
+        verify(emailService).sendHtmlEmail(user.getEmail(), "Reset your password", "reset-body");
+    }
+
+    @Test
+    void sendPasswordResetOtpShouldNotRevealUnknownEmail() {
+        String email = "unknown@coworking.test";
+        given(userRepository.findByEmail(email)).willReturn(Optional.empty());
+
+        otpService.sendPasswordResetOtp(email);
+
+        verifyNoInteractions(otpTokenRepository, emailTemplateService, emailService);
     }
 }

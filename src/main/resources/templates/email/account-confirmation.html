@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirm your account</title>
+</head>
+<body>
+<h1>Confirm your account</h1>
+<p>Your confirmation code is <strong th:text="${code}">000000</strong>.</p>
+<p>This code expires in <span th:text="${expirationMinutes}">5</span> minutes.</p>
+</body>
+</html>

@@ -7,6 +7,40 @@ File ghi lại những thay đổi của dự án.
 
 ## [Unreleased]
 
+### 2026-08-20 - Booking Status Email Notification
+
+**Người thực hiện:** [Kaio]
+
+#### Added
+
+- Template HTML Thymeleaf thông báo trạng thái Booking thay đổi
+- `BookingService.changeStatus(...)` chuẩn hóa và lưu trạng thái trước khi gửi email cho người đặt
+- `BookingRepository` tải sẵn user và space phục vụ nội dung email trong transaction
+- Unit test cho nội dung template, trigger gửi email và trường hợp trạng thái không đổi
+
+#### Changed
+
+- Không lưu lại hoặc gửi email trùng khi trạng thái Booking không thay đổi
+
+### 2026-08-20 - Sign Up and Password Reset Email Integration
+
+**Người thực hiện:** [Kaio]
+
+#### Added
+
+- Endpoint `POST /api/auth/signup` tạo user `INACTIVE`, mã hóa mật khẩu, gán role `USER` và gửi OTP xác nhận
+- Endpoint `POST /api/auth/forgot-password` gửi OTP reset cho tài khoản `ACTIVE` và luôn trả `202 Accepted`
+- Template HTML Thymeleaf riêng cho email xác nhận tài khoản và reset password
+- Unit test cho auth service, OTP reset, template email và controller
+
+#### Changed
+
+- Chuẩn hóa email trước khi tra cứu và dùng thời hạn OTP từ cấu hình trong nội dung email
+
+#### Fixed
+
+- Cho phép Spring Boot xử lý `/error` để validation và lỗi email của các API auth không bị chuyển thành `403 Forbidden`
+
 ### 2026-08-20 - Send Account Confirmation OTP API
 
 **Người thực hiện:** [Kaio]

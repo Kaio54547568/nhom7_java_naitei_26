@@ -53,6 +53,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/error",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 // OpenAPI specification
