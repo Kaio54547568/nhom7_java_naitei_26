@@ -3,9 +3,14 @@
 spring:
   datasource:
     password: YOUR_SUPABASE_PASSWORD
+  mail:
+    username: YOUR_SMTP_USERNAME
+    password: YOUR_SMTP_PASSWORD_OR_APP_PASSWORD
 
 app:
   jwt:
     # Run this command in PowerShell
     # [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
     secret: YOUR_JWT_SECRET_AT_LEAST_32_CHARACTERS_LONG
+  mail:
+    from: YOUR_VERIFIED_SENDER_EMAIL

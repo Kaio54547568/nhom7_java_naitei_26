@@ -9,6 +9,11 @@ spring:
     # Không commit password lên Git – set biến môi trường DB_PASSWORD trên máy local
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 0
+      connection-timeout: 10000
+      idle-timeout: 30000
 
   sql:
     init:
@@ -35,12 +40,16 @@ spring:
     port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
+    test-connection: false
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
   messages:
     basename: i18n/messages
@@ -70,6 +79,8 @@ app:
     secret: ${JWT_SECRET}
     expiration-ms: 86400000 # 1 day
     refresh-expiration-ms: 604800000 # 7 days
+  mail:
+    from: ${MAIL_FROM:${MAIL_USERNAME:}}
   cors:
     allowed-origins: http://localhost:3000, http://localhost:5173 # React (CRA) and Vite dev servers
 

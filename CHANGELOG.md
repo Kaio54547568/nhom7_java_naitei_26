@@ -7,6 +7,17 @@ File ghi lại những thay đổi của dự án.
 
 ## [Unreleased]
 
+### 2026-08-20 - Base Email Service
+
+**Người thực hiện:** [Kaio]
+
+#### Added
+
+- Cấu hình SMTP qua biến môi trường và file cấu hình local
+- `EmailService` hỗ trợ gửi email plain text và HTML qua `JavaMailSender`
+- Xử lý lỗi gửi mail tập trung bằng `EmailSendingException`
+- Unit test cho nội dung email, validation và lỗi SMTP
+
 ### 2026-08-20 - Unit test for JwtAuthenticationFilter
 
 **Người thực hiện:** [Trịnh Yến Nhi]
