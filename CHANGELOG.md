@@ -7,6 +7,17 @@ File ghi lại những thay đổi của dự án.
 
 ## [Unreleased]
 
+### 2026-08-20 - Send Account Confirmation OTP API
+
+**Người thực hiện:** [Kaio]
+
+#### Added
+
+- Endpoint `POST /api/auth/send-confirm` nhận email hợp lệ và trả `202 Accepted`
+- Sinh OTP 6 chữ số bằng `SecureRandom`, hash trước khi lưu và hết hạn sau 5 phút
+- Lưu OTP xác nhận theo user, thay thế OTP cũ và gửi mã qua `EmailService`
+- Unit test cho OTP generator, service và controller
+
 ### 2026-08-20 - Base Email Service
 
 **Người thực hiện:** [Kaio]
