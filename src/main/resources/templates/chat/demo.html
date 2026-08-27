@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chat realtime | Coworking Space</title>
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="stylesheet" th:href="@{/css/moderator-layout.css}">
+    <link rel="stylesheet" th:href="@{/css/chat-demo.css}">
+</head>
+<body class="chat-demo-page">
+<main class="chat-demo-shell">
+    <header class="chat-demo-header">
+        <a class="chat-brand" th:href="@{/chat}" aria-label="Trang chat realtime">
+            <span class="chat-brand-mark" aria-hidden="true">C</span>
+            <span>
+                <strong>Coworking Space</strong>
+                <small>Realtime chat demo</small>
+            </span>
+        </a>
+        <div id="connectionStatus" class="connection-status disconnected" role="status">
+            <span class="connection-dot" aria-hidden="true"></span>
+            <span>Chưa kết nối</span>
+        </div>
+    </header>
+
+    <section class="chat-demo-intro" aria-labelledby="chatDemoTitle">
+        <div>
+            <p class="chat-eyebrow">WEBSOCKET / STOMP</p>
+            <h1 id="chatDemoTitle">Demo chat realtime</h1>
+            <p>Đăng nhập bằng hai tài khoản ở hai tab trình duyệt, chọn ID người nhận và gửi tin nhắn để theo dõi cập nhật ngay lập tức.</p>
+        </div>
+        <div class="chat-demo-steps" aria-label="Các bước demo">
+            <span>1. Đăng nhập</span>
+            <span>2. Chọn người nhận</span>
+            <span>3. Nhắn tin</span>
+        </div>
+    </section>
+
+    <div id="alertBox" class="chat-alert" role="alert" hidden></div>
+
+    <div class="chat-demo-grid">
+        <aside class="chat-sidebar">
+            <section id="loginCard" class="chat-card">
+                <div class="chat-card-heading">
+                    <p class="chat-eyebrow">TÀI KHOẢN</p>
+                    <h2>Đăng nhập để bắt đầu</h2>
+                    <p>Access token chỉ được lưu trong phiên tab hiện tại.</p>
+                </div>
+                <form id="loginForm" class="chat-form">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+                    <label for="password">Mật khẩu</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" required>
+                    <button id="loginButton" class="chat-button primary" type="submit">Đăng nhập & kết nối</button>
+                </form>
+            </section>
+
+            <section id="sessionCard" class="chat-card" hidden>
+                <div class="chat-card-heading compact">
+                    <p class="chat-eyebrow">PHIÊN HIỆN TẠI</p>
+                    <h2 id="currentUserName">Người dùng</h2>
+                    <p id="currentUserEmail">user@example.com</p>
+                </div>
+                <div class="chat-user-id">ID của bạn: <strong id="currentUserId">—</strong></div>
+                <button id="logoutButton" class="chat-button secondary" type="button">Đăng xuất</button>
+            </section>
+
+            <section class="chat-card">
+                <div class="chat-card-heading compact">
+                    <p class="chat-eyebrow">CUỘC HỘI THOẠI</p>
+                    <h2>Mở cuộc trò chuyện</h2>
+                    <p>Nhập ID của tài khoản còn lại.</p>
+                </div>
+                <form id="conversationForm" class="chat-form">
+                    <label for="receiverId">ID người nhận</label>
+                    <input id="receiverId" name="receiverId" type="number" min="1" inputmode="numeric" placeholder="Ví dụ: 2" required disabled>
+                    <button id="openConversationButton" class="chat-button primary" type="submit" disabled>Mở hội thoại</button>
+                </form>
+            </section>
+        </aside>
+
+        <section class="chat-card chat-conversation" aria-labelledby="conversationTitle">
+            <header class="conversation-header">
+                <div class="conversation-avatar" aria-hidden="true">#</div>
+                <div>
+                    <p class="chat-eyebrow">TIN NHẮN</p>
+                    <h2 id="conversationTitle">Chưa chọn người nhận</h2>
+                    <p id="conversationSubtitle">Đăng nhập và nhập ID người nhận để xem lịch sử chat.</p>
+                </div>
+            </header>
+
+            <div id="messageList" class="message-list" aria-live="polite">
+                <div class="message-empty">
+                    <strong>Sẵn sàng cho buổi demo</strong>
+                    <span>Tin nhắn sẽ xuất hiện ở đây sau khi bạn mở một cuộc hội thoại.</span>
+                </div>
+            </div>
+
+            <form id="messageForm" class="message-composer">
+                <label class="sr-only" for="messageContent">Nội dung tin nhắn</label>
+                <textarea id="messageContent" rows="1" maxlength="2000" placeholder="Nhập tin nhắn..." disabled required></textarea>
+                <button id="sendButton" class="chat-button primary send-button" type="submit" disabled>
+                    <span>Gửi</span>
+                    <span aria-hidden="true">➜</span>
+                </button>
+            </form>
+        </section>
+    </div>
+</main>
+
+<script th:src="@{/js/chat-demo.js}"></script>
+</body>
+</html>

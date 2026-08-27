@@ -6,7 +6,13 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "message")
+@Table(
+        name = "message",
+        indexes = {
+                @Index(name = "idx_message_sender_created", columnList = "sender_id, created_at"),
+                @Index(name = "idx_message_receiver_created", columnList = "receiver_id, created_at")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,6 +35,13 @@ public class Message {
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    void assignCreatedAt() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 }
