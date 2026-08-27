@@ -137,6 +137,7 @@ public class SecurityConfig {
                                 "/",
                                 "/login",
                                 "/register",
+                                "/ws",
                                 "/error",
                                 "/favicon.ico",
                                 "/swagger-ui/**",

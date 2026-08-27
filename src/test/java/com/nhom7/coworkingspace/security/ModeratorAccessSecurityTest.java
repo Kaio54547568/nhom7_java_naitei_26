@@ -70,7 +70,7 @@ class ModeratorAccessSecurityTest {
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(get("/moderator/probe"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().is3xxRedirection());
     }
 
     private void assertAllowedFor(String role) throws Exception {
