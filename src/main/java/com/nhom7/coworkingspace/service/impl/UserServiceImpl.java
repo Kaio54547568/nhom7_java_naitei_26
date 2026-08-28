@@ -876,23 +876,6 @@ public class UserServiceImpl implements UserService {
                 currentAdminEmail
         );
 
-        if (Boolean.valueOf(verified)
-                .equals(
-                        targetUser.getIsBusinessVerified()
-                )) {
-
-            log.info(
-                    "[UserService] Business verification already {}, no update required: targetUserId={}",
-                    verified,
-                    targetUserId
-            );
-
-            return userMapper
-                    .toUpdateUserVerificationResponse(
-                            targetUser
-                    );
-        }
-
         // Cannot mark as verified if document is missing
         if (verified
                 && (targetUser.getBusinessLicenseUrl() == null
@@ -909,14 +892,47 @@ public class UserServiceImpl implements UserService {
             );
         }
 
-        targetUser.setIsBusinessVerified(
-                verified
-        );
+        boolean hasHostRole = targetUser.getRoles().stream()
+                .anyMatch(role -> HOST_ROLE_NAME.equalsIgnoreCase(role.getName()));
+        boolean roleChanged = false;
+
+        if (verified && !hasHostRole) {
+            Role hostRole = roleRepository.findByName(HOST_ROLE_NAME)
+                    .orElseThrow(() -> new AppException("role.not.found", HttpStatus.NOT_FOUND));
+            targetUser.getRoles().add(hostRole);
+            roleChanged = true;
+        } else if (!verified && hasHostRole) {
+            roleChanged = targetUser.getRoles().removeIf(
+                    role -> HOST_ROLE_NAME.equalsIgnoreCase(role.getName())
+            );
+        }
+
+        boolean verificationChanged = !Boolean.valueOf(verified)
+                .equals(targetUser.getIsBusinessVerified());
+
+        if (!verificationChanged && !roleChanged) {
+            log.info(
+                    "[UserService] Business verification and HOST role already synchronized: targetUserId={}, verified={}",
+                    targetUserId,
+                    verified
+            );
+            return userMapper.toUpdateUserVerificationResponse(targetUser);
+        }
+
+        targetUser.setIsBusinessVerified(verified);
 
         User savedUser =
                 userRepository.save(
                         targetUser
                 );
+
+        if (roleChanged) {
+            log.info(
+                    "[UserService] HOST role changed for user {}, revoking previously issued tokens",
+                    savedUser.getEmail()
+            );
+            tokenBlacklistService.blacklistUserTokens(savedUser.getEmail(), new Date());
+        }
 
         return userMapper
                 .toUpdateUserVerificationResponse(

@@ -1665,6 +1665,9 @@ class UserServiceImplTest {
                 )
         ).thenReturn(expectedResponse);
 
+        when(roleRepository.findByName("HOST"))
+                .thenReturn(Optional.of(hostRole));
+
         UpdateUserVerificationResponse response =
                 userService.updateBusinessVerification(
                         3L,
@@ -1678,10 +1681,70 @@ class UserServiceImplTest {
                 response.getIsBusinessVerified()
         );
 
+        assertTrue(user.getRoles().contains(hostRole));
+
         verify(
                 userRepository,
                 times(1)
         ).save(user);
+
+        verify(tokenBlacklistService).blacklistUserTokens(eq("user@test.com"), any());
+    }
+
+    @Test
+    void updateBusinessVerification_shouldRemoveHostAndRevokeTokens_whenUnverified() {
+        user.setBusinessLicenseUrl("business-license/license.jpg");
+        user.setIsBusinessVerified(true);
+        user.getRoles().add(hostRole);
+        User adminUser = User.builder()
+                .id(1L)
+                .email("admin@test.com")
+                .roles(new HashSet<>(Set.of(adminRole)))
+                .build();
+
+        when(userRepository.findById(3L)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userMapper.toUpdateUserVerificationResponse(any(User.class)))
+                .thenAnswer(invocation -> UpdateUserVerificationResponse.builder()
+                        .id(3L)
+                        .isBusinessVerified(((User) invocation.getArgument(0)).getIsBusinessVerified())
+                        .roles(((User) invocation.getArgument(0)).getRoles().stream()
+                                .map(Role::getName)
+                                .collect(java.util.stream.Collectors.toSet()))
+                        .build());
+
+        UpdateUserVerificationResponse response = userService.updateBusinessVerification(
+                3L, false, "admin@test.com");
+
+        assertFalse(response.getIsBusinessVerified());
+        assertFalse(user.getRoles().contains(hostRole));
+        assertTrue(user.getRoles().contains(userRole));
+        verify(tokenBlacklistService).blacklistUserTokens(eq("user@test.com"), any());
+    }
+
+    @Test
+    void updateBusinessVerification_shouldRepairVerifiedUserMissingHostRole() {
+        user.setBusinessLicenseUrl("business-license/license.jpg");
+        user.setIsBusinessVerified(true);
+        User adminUser = User.builder()
+                .id(1L)
+                .email("admin@test.com")
+                .roles(new HashSet<>(Set.of(adminRole)))
+                .build();
+
+        when(userRepository.findById(3L)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(roleRepository.findByName("HOST")).thenReturn(Optional.of(hostRole));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userMapper.toUpdateUserVerificationResponse(any(User.class)))
+                .thenReturn(UpdateUserVerificationResponse.builder().id(3L).build());
+
+        userService.updateBusinessVerification(3L, true, "admin@test.com");
+
+        assertTrue(user.getRoles().contains(hostRole));
+        verify(userRepository).save(user);
+        verify(tokenBlacklistService).blacklistUserTokens(eq("user@test.com"), any());
     }
 
     @Test

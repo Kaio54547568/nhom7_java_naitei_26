@@ -146,7 +146,39 @@ class ModeratorVenueWebControllerTest {
                                         "/css/moderator-venues.css"
                                 )
                         )
+                )
+                .andExpect(
+                        content().string(
+                                containsString("Xem chi tiết")
+                        )
+                )
+                .andExpect(
+                        content().string(
+                                containsString("id=\"venueDetailDrawer\"")
+                        )
+                )
+                .andExpect(
+                        content().string(
+                                org.hamcrest.Matchers.not(containsString("Thống kê hệ thống"))
+                        )
                 );
+    }
+
+    @Test
+    @WithMockUser(username = "admin@test.com", roles = "ADMIN")
+    @DisplayName("ADMIN sees the three admin-only sidebar entries")
+    void givenAdminRole_whenListVenues_thenShowAdminSidebar() throws Exception {
+        given(venueService.getAllVenues(0, 10, null)).willReturn(
+                PageResponse.<VenueResponse>builder()
+                        .content(List.of()).pageNumber(0).pageSize(10)
+                        .totalElements(0).totalPages(0).last(true).build()
+        );
+
+        mockMvc.perform(get("/moderator/venues"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Thống kê hệ thống")))
+                .andExpect(content().string(containsString("Lịch sử thanh toán")))
+                .andExpect(content().string(containsString("Đổi role")));
     }
 
     @Test
@@ -189,6 +221,7 @@ class ModeratorVenueWebControllerTest {
         ).updateVenueStatus(
                 7L,
                 VenueStatus.APPROVE,
+                null,
                 "moderator@test.com"
         );
     }
@@ -243,14 +276,14 @@ class ModeratorVenueWebControllerTest {
                 .andExpect(
                         content().string(
                                 containsString(
-                                        "Duyệt venue"
+                                        "venue-action-approve"
                                 )
                         )
                 )
                 .andExpect(
                         content().string(
                                 containsString(
-                                        "Khóa venue"
+                                        "venue-action-block"
                                 )
                         )
                 );
